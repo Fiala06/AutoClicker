@@ -13,8 +13,17 @@ Win32 API. No `pip install`, no third-party tools. Multi-monitor and DPI aware.
 
 Grab the latest **`AutoClicker.exe`** from the
 [Releases page](../../releases) and double-click it — it's a single self-contained
-file, nothing to install. (Windows SmartScreen may warn about an unknown publisher
-the first time: *More info → Run anyway*.)
+file, nothing to install.
+
+The exe is compiled with [Nuitka](https://nuitka.net) (native code), which keeps
+antivirus false positives to a minimum. A couple of first-run prompts are still
+possible because the app is unsigned and synthesizes mouse/keyboard input:
+
+- **SmartScreen** ("Windows protected your PC"): *More info → Run anyway*.
+- **Windows Defender** flags it as a threat: this is a false positive. You can
+  *Allow on device* from Windows Security → Protection history, or add an
+  exclusion. The only way to remove the warnings entirely is to sign the exe with
+  a paid code-signing certificate.
 
 ## Run from source
 

@@ -19,11 +19,26 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install PyInstaller
-        run: pip install pyinstaller
+      - name: Install Nuitka
+        run: pip install nuitka
 
-      - name: Build single-file EXE
-        run: pyinstaller --onefile --windowed --name AutoClicker autoclicker.py
+      # Nuitka compiles to native code (not a bundled interpreter), which
+      # triggers far fewer antivirus false positives than PyInstaller.
+      - name: Build single-file EXE (Nuitka)
+        run: >
+          python -m nuitka
+          --onefile
+          --assume-yes-for-downloads
+          --enable-plugin=tk-inter
+          --windows-console-mode=disable
+          --company-name=Fiala06
+          --product-name=AutoClicker
+          --file-description="AutoClicker - click and macro sequencer"
+          --file-version=1.0.0.0
+          --product-version=1.0.0.0
+          --output-dir=dist
+          --output-filename=AutoClicker.exe
+          autoclicker.py
 
       # Always make the exe downloadable from the workflow run (Artifacts).
       - name: Upload build artifact
