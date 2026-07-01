@@ -31,6 +31,9 @@ jobs:
           --assume-yes-for-downloads
           --enable-plugin=tk-inter
           --windows-console-mode=disable
+          --windows-uac-admin
+          --windows-icon-from-ico=icon.ico
+          --include-data-files=icon.png=icon.png
           --company-name=Fiala06
           --product-name=AutoClicker
           --file-description="AutoClicker - click and macro sequencer"

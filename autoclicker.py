@@ -4,6 +4,10 @@ AutoClicker - a self-contained click/macro sequencer for Windows.
 Pure standard library: tkinter (GUI) + ctypes (Win32 API). No pip installs,
 no third-party tools. Multi-monitor and DPI aware.
 
+Requests administrator rights on launch (UAC). This is needed to send clicks
+and keystrokes to programs that themselves run as administrator - Windows
+blocks input from a lower-privilege process otherwise.
+
 Run:  python autoclicker.py
 
 Default hotkeys (global - work even when this window is NOT focused, and
@@ -19,6 +23,7 @@ import ctypes.wintypes as wt
 import threading
 import time
 import json
+import os
 import sys
 import random
 import tkinter as tk
@@ -81,6 +86,35 @@ class INPUT(ctypes.Structure):
 INPUT_KEYBOARD = 1
 KEYEVENTF_UNICODE = 0x0004
 KEYEVENTF_KEYUP = 0x0002
+
+
+def is_admin():
+    try:
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except Exception:
+        return False
+
+
+def run_as_admin():
+    """Relaunch elevated if we're not already admin. Returns True if a new
+    elevated instance was started (so the caller should exit).
+
+    Elevation is needed to send synthetic input to windows that themselves run
+    as administrator (Windows UIPI blocks it otherwise)."""
+    if is_admin():
+        return False
+    frozen = getattr(sys, "frozen", False) or "__compiled__" in globals()
+    if frozen:
+        target, params = sys.argv[0], " ".join(f'"{a}"' for a in sys.argv[1:])
+    else:
+        target = sys.executable
+        params = " ".join(f'"{a}"' for a in sys.argv)
+    try:
+        # ShellExecuteW with "runas" triggers the UAC prompt; >32 means success.
+        return int(ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", target, params, None, 1)) > 32
+    except Exception:
+        return False
 
 
 def get_cursor_pos():
@@ -278,6 +312,7 @@ class AutoClicker:
         root.title("AutoClicker")
         root.resizable(False, False)
         apply_theme(root)
+        self._set_window_icon()
 
         self.steps = []
         self.stop_flag = threading.Event()
@@ -295,6 +330,20 @@ class AutoClicker:
         self._start_hotkey_listener()
         root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.root.after(150, self._poll_hotkey_queue)
+
+    def _set_window_icon(self):
+        """Set the titlebar/taskbar icon from icon.png (works from source and
+        from the bundled exe, where the png is included as a data file)."""
+        for base in (os.path.dirname(os.path.abspath(__file__)),
+                     os.path.dirname(os.path.abspath(sys.argv[0])), os.getcwd()):
+            path = os.path.join(base, "icon.png")
+            if os.path.exists(path):
+                try:
+                    self._icon_img = tk.PhotoImage(file=path)   # keep a reference
+                    self.root.iconphoto(True, self._icon_img)
+                    return
+                except Exception:
+                    pass
 
     # ---------------------------------------------------------------- UI
     def _build_ui(self):
@@ -1130,6 +1179,8 @@ class AutoClicker:
 if __name__ == "__main__":
     if sys.platform != "win32":
         print("This build targets Windows (Win32 API).")
+    elif run_as_admin():
+        sys.exit(0)   # handed off to the elevated instance; quit this one
     root = tk.Tk()
     AutoClicker(root)
     root.mainloop()

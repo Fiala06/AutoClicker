@@ -1,4 +1,4 @@
-# AutoClicker
+# <img src="icon.png" width="28" align="top"> AutoClicker
 
 A self-contained click & macro sequencer for Windows. It can replay a list of
 mouse/keyboard steps, spam-click at a set rate, react to on-screen pixel colours,
@@ -25,13 +25,20 @@ possible because the app is unsigned and synthesizes mouse/keyboard input:
   exclusion. The only way to remove the warnings entirely is to sign the exe with
   a paid code-signing certificate.
 
+> **Runs as administrator.** The app requests admin rights on launch (you'll see
+> a UAC prompt). This is required to send clicks and keystrokes to programs that
+> run as administrator themselves — Windows blocks input from a lower-privilege
+> process, which is why clicks may appear to "do nothing" without it.
+
 ## Run from source
 
 ```sh
 python autoclicker.py
 ```
 
-Requires Python 3.8+ on Windows. Nothing else to install.
+Requires Python 3.8+ on Windows. Nothing else to install. Run from an
+administrator terminal (or accept the UAC prompt it raises) so it can drive
+elevated apps.
 
 ## Build the EXE yourself
 
